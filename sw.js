@@ -39,11 +39,14 @@ self.addEventListener('install', (event) => {
                  // 📌 2. ESTADO: Instalado (cached)
                 const installedTime = getFormattedTime();
                 console.log(`[SW] ✅ 2. Instalado (cached): ${installedTime}`);
-                document.getElementById('instalado').classList.replace('pending', 'done');
-                document.getElementById('instalado').innerHTML = '✅';
                 // Forzamos al nuevo SW a tomar el control inmediatamente.
                 // Sin esta línea, el SW se quedaría 'waiting' hasta que se cerraran todas las pestañas.
                 self.skipWaiting();
+                self.clients.matchAll().then(clients => {
+                    clients.forEach(client => {
+                        client.postMessage({ estado: 'instalado' });
+                    });
+                });
             })
             .catch((error) => {
                 console.error('[SW] ❌ Error durante la instalación:', error);
@@ -55,8 +58,6 @@ self.addEventListener('install', (event) => {
 // 📌 3. ESTADO: Activación (activate)
 self.addEventListener('activate', (event) => {
     console.log(`[SW] ➡️ 3. Activación... (activate)`);
-    document.getElementById('activacion').classList.replace('pending', 'done');
-    document.getElementById('activacion').innerHTML = '✅';
     // 'event.waitUntil' se usa aquí para limpiar cachés viejos si cambias el nombre del CACHE_NAME.
     event.waitUntil(
         caches.keys().then((cacheNames) => {
@@ -72,10 +73,13 @@ self.addEventListener('activate', (event) => {
             );
         }).then(() => {
             console.log(`[SW] ✅ 3.2. Activado y listo para tomar control.`);
-            document.getElementById('activado').classList.replace('pending', 'done');
-            document.getElementById('activado').innerHTML = '✅';
             // Aseguramos que el SW tome control de la página tan pronto como sea posible.
             // Esto es crucial para que las peticiones (fetch) empiecen a ser interceptadas.
+            self.clients.matchAll().then(clients => {
+                clients.forEach(client => {
+                    client.postMessage({ estado: 'activado' });
+                });
+            });
             return self.clients.claim();
         })
     );
@@ -89,6 +93,11 @@ self.addEventListener('fetch', (event) => {
     // Solo registramos el primer 'fetch' para no saturar la consola.
     // La presencia de esta función con lógica ya indica que el SW está 'Activo'.
     if (!self.hasLoggedInFetch) {
+        self.clients.matchAll().then(clients => {
+            clients.forEach(client => {
+                client.postMessage({ estado: 'activo' });
+            });
+        });
         console.log(`[SW] 🚀 4. Activo - Interceptando petición (fetch) para: ${event.request.url}`);
         self.hasLoggedInFetch = true; // Variable de control simple
     }

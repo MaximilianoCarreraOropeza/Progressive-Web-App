@@ -32,6 +32,21 @@
                         // El evento 'install' comenzará aquí.
                         document.getElementById('instalando').classList.replace('pending', 'done');
                         document.getElementById('instalando').innerHTML = '✅';
+                        navigator.serviceWorker.addEventListener('message', event => {
+                        const estado = event.data.estado;
+                        if (estado === 'instalado') {
+                            document.getElementById('instalado').classList.replace('pending', 'done');
+                            document.getElementById('instalado').innerHTML = '✅';
+                        }
+                        if (estado === 'activado') {
+                            document.getElementById('activacion').classList.replace('pending', 'done');
+                            document.getElementById('activacion').innerHTML = '✅';
+                        }
+                        if (estado === 'activo') {
+                            document.getElementById('activo').classList.replace('pending', 'done');
+                            document.getElementById('activo').innerHTML = '✅';
+                        }
+                    });
                     })
                     .catch(error => {
                         console.log('❌ Registro del Service Worker fallido:', error);
