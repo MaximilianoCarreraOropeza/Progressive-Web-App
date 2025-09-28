@@ -1,8 +1,9 @@
 // Constantes para el caché
 const CACHE_NAME = 'pwa-bitacora-v1';
 const ASSETS_TO_CACHE = [
-    '/', // La ruta base (index.html)
-    '/index.html',
+    './', // La ruta base (index.html)
+    'index.html',
+    'sw.js',
 ];
 
 // Función para obtener la hora actual en el formato DD-MM-YYYY HH:MM:SS
