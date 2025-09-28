@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitácora del Ciclo de Vida del Service Worker</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .log-item { display: flex; align-items: center; margin-bottom: 10px; }
+        .status-icon { font-size: 1.5em; margin-right: 10px; }
+        .done { color: green; }
+        .pending { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Bitácora del Service Worker (PWA)</h1>
+    <div id="bitacora">
+        <div class="log-item"><span id="instalando" class="status-icon pending">❌</span>Instalando (install)</div>
+        <div class="log-item"><span id="instalado" class="status-icon pending">❌</span>Instalado (Cacheado)</div>
+        <div class="log-item"><span id="activacion" class="status-icon pending">❌</span>Activación (activate)</div>
+        <div class="log-item"><span id="activo" class="status-icon pending">❌</span>Activo (Fetch)</div>
+        <div class="log-item"><span id="ocioso" class="status-icon done">✅</span>Ocioso (Idle)</div>
+    </div>
+
+    <script>
+        // Función para registrar el Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('✅ Registro del Service Worker exitoso con alcance:', registration.scope);
+                        // El evento 'install' comenzará aquí.
+                        document.getElementById('instalando').classList.replace('pending', 'done');
+                        document.getElementById('instalando').innerHTML = '✅';
+                    })
+                    .catch(error => {
+                        console.log('❌ Registro del Service Worker fallido:', error);
+                    });
+            });
+        }
+
+        // Simplemente marcamos el estado Ocioso porque la etapa del SW es estar
+        // en este estado después de estar Activo, a menos que haya peticiones.
+        // Es un estado por defecto si no está haciendo nada.
+    </script>
+</body>
+</html>
