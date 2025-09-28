@@ -39,7 +39,8 @@ self.addEventListener('install', (event) => {
                  // 📌 2. ESTADO: Instalado (cached)
                 const installedTime = getFormattedTime();
                 console.log(`[SW] ✅ 2. Instalado (cached): ${installedTime}`);
-                
+                document.getElementById('instalado').classList.replace('pending', 'done');
+                document.getElementById('instalado').innerHTML = '✅';
                 // Forzamos al nuevo SW a tomar el control inmediatamente.
                 // Sin esta línea, el SW se quedaría 'waiting' hasta que se cerraran todas las pestañas.
                 self.skipWaiting();
@@ -54,7 +55,8 @@ self.addEventListener('install', (event) => {
 // 📌 3. ESTADO: Activación (activate)
 self.addEventListener('activate', (event) => {
     console.log(`[SW] ➡️ 3. Activación... (activate)`);
-
+    document.getElementById('activacion').classList.replace('pending', 'done');
+    document.getElementById('activacion').innerHTML = '✅';
     // 'event.waitUntil' se usa aquí para limpiar cachés viejos si cambias el nombre del CACHE_NAME.
     event.waitUntil(
         caches.keys().then((cacheNames) => {
@@ -63,12 +65,15 @@ self.addEventListener('activate', (event) => {
                     // Si el nombre del caché es diferente al actual, lo eliminamos.
                     if (cacheName !== CACHE_NAME) {
                         console.log(`[SW] 🗑️ 3.1. Eliminando caché viejo: ${cacheName}`);
+
                         return caches.delete(cacheName);
                     }
                 })
             );
         }).then(() => {
             console.log(`[SW] ✅ 3.2. Activado y listo para tomar control.`);
+            document.getElementById('activado').classList.replace('pending', 'done');
+            document.getElementById('activado').innerHTML = '✅';
             // Aseguramos que el SW tome control de la página tan pronto como sea posible.
             // Esto es crucial para que las peticiones (fetch) empiecen a ser interceptadas.
             return self.clients.claim();
