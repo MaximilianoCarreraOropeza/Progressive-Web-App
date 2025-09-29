@@ -23,54 +23,55 @@
     </div>
 
     <script>
-       // index.html (CÓDIGO MODIFICADO)
+        // index.html (CÓDIGO MODIFICADO)
 
-    // Función para registrar el Service Worker
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(registration => {
-                    console.log('✅ Registro del Service Worker exitoso con alcance:', registration.scope);
-                    
-                    // --- CAMBIO CLAVE AÑADIDO AQUÍ ---
-                    // Si hay un Service Worker esperando (típico en la primera instalación),
-                    // recargamos para que el nuevo SW tome el control inmediatamente.
-                    if (registration.installing || registration.waiting) {
-                        // Forzar una recarga es la forma más rápida de garantizar que el nuevo SW controle la página.
-                        setTimeout(() => {
-                            console.log("🔄 Service Worker instalado/esperando. Recargando para tomar control...");
-                            window.location.reload();
-                        }, 100); 
+// Función para registrar el Service Worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(registration => {
+                console.log('✅ Registro del Service Worker exitoso con alcance:', registration.scope);
+                
+                // 1. MARCAR ESTADO 'INSTALANDO' (Siempre se marca si el registro es OK)
+                document.getElementById('instalando').classList.replace('pending', 'done');
+                document.getElementById('instalando').innerHTML = '✅';
+
+                // 2. COMPROBAR EL TRABAJADOR ACTIVO (Para INSTALADO y ACTIVACIÓN)
+                const worker = registration.active;
+                if (worker) {
+                    // Si existe un Service Worker activo, significa que ya pasó por INSTALADO y ACTIVACIÓN.
+                    // Marcamos estos estados inmediatamente para la bitácora.
+                    document.getElementById('instalado').classList.replace('pending', 'done');
+                    document.getElementById('instalado').innerHTML = '✅';
+                    document.getElementById('activacion').classList.replace('pending', 'done');
+                    document.getElementById('activacion').innerHTML = '✅';
+                }
+                
+                // 3. ESCUCHA DE MENSAJES (Necesario para el estado 'ACTIVO')
+                // Este listener aún se necesita para capturar el evento 'activo' (fetch).
+                navigator.serviceWorker.addEventListener('message', event => {
+                    const estado = event.data.estado;
+                    // Solo necesitamos manejar el estado 'activo' aquí.
+                    if (estado === 'activo') {
+                        document.getElementById('activo').classList.replace('pending', 'done');
+                        document.getElementById('activo').innerHTML = '✅';
                     }
-                    // --- FIN DEL CAMBIO CLAVE ---
-
-                    // El evento 'install' comenzará aquí.
-                    document.getElementById('instalando').classList.replace('pending', 'done');
-                    document.getElementById('instalando').innerHTML = '✅';
-                    
-                    // ... (El Listener de mensajes se mantiene)
-                    navigator.serviceWorker.addEventListener('message', event => {
-                        const estado = event.data.estado;
-                        // ... (lógica de actualización de estado)
-                        if (estado === 'instalado') {
-                            document.getElementById('instalado').classList.replace('pending', 'done');
-                            document.getElementById('instalado').innerHTML = '✅';
-                        }
-                        if (estado === 'activado') {
-                            document.getElementById('activacion').classList.replace('pending', 'done');
-                            document.getElementById('activacion').innerHTML = '✅';
-                        }
-                        if (estado === 'activo') {
-                            document.getElementById('activo').classList.replace('pending', 'done');
-                            document.getElementById('activo').innerHTML = '✅';
-                        }
-                    });
-                })
-                .catch(error => {
-                    console.log('❌ Registro del Service Worker fallido:', error);
+                    // Mantenemos la lógica por si ocurre una actualización de versión.
+                    if (estado === 'instalado') {
+                        document.getElementById('instalado').classList.replace('pending', 'done');
+                        document.getElementById('instalado').innerHTML = '✅';
+                    }
+                    if (estado === 'activado') {
+                        document.getElementById('activacion').classList.replace('pending', 'done');
+                        document.getElementById('activacion').innerHTML = '✅';
+                    }
                 });
-        });
-    }
+            })
+            .catch(error => {
+                console.log('❌ Registro del Service Worker fallido:', error);
+            });
+    });
+}
     </script>
 </body>
 </html>
