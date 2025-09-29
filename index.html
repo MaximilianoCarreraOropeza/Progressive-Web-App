@@ -23,17 +23,35 @@
     </div>
 
     <script>
-        // Función para registrar el Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(registration => {
-                        console.log('✅ Registro del Service Worker exitoso con alcance:', registration.scope);
-                        // El evento 'install' comenzará aquí.
-                        document.getElementById('instalando').classList.replace('pending', 'done');
-                        document.getElementById('instalando').innerHTML = '✅';
-                        navigator.serviceWorker.addEventListener('message', event => {
+       // index.html (CÓDIGO MODIFICADO)
+
+    // Función para registrar el Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(registration => {
+                    console.log('✅ Registro del Service Worker exitoso con alcance:', registration.scope);
+                    
+                    // --- CAMBIO CLAVE AÑADIDO AQUÍ ---
+                    // Si hay un Service Worker esperando (típico en la primera instalación),
+                    // recargamos para que el nuevo SW tome el control inmediatamente.
+                    if (registration.installing || registration.waiting) {
+                        // Forzar una recarga es la forma más rápida de garantizar que el nuevo SW controle la página.
+                        setTimeout(() => {
+                            console.log("🔄 Service Worker instalado/esperando. Recargando para tomar control...");
+                            window.location.reload();
+                        }, 100); 
+                    }
+                    // --- FIN DEL CAMBIO CLAVE ---
+
+                    // El evento 'install' comenzará aquí.
+                    document.getElementById('instalando').classList.replace('pending', 'done');
+                    document.getElementById('instalando').innerHTML = '✅';
+                    
+                    // ... (El Listener de mensajes se mantiene)
+                    navigator.serviceWorker.addEventListener('message', event => {
                         const estado = event.data.estado;
+                        // ... (lógica de actualización de estado)
                         if (estado === 'instalado') {
                             document.getElementById('instalado').classList.replace('pending', 'done');
                             document.getElementById('instalado').innerHTML = '✅';
@@ -47,16 +65,12 @@
                             document.getElementById('activo').innerHTML = '✅';
                         }
                     });
-                    })
-                    .catch(error => {
-                        console.log('❌ Registro del Service Worker fallido:', error);
-                    });
-            });
-        }
-
-        // Simplemente marcamos el estado Ocioso porque la etapa del SW es estar
-        // en este estado después de estar Activo, a menos que haya peticiones.
-        // Es un estado por defecto si no está haciendo nada.
+                })
+                .catch(error => {
+                    console.log('❌ Registro del Service Worker fallido:', error);
+                });
+        });
+    }
     </script>
 </body>
 </html>

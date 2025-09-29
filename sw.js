@@ -1,5 +1,5 @@
 // Constantes para el caché
-const CACHE_NAME = 'pwa-bitacora-v3';
+const CACHE_NAME = 'pwa-bitacora-v4';
 const ASSETS_TO_CACHE = [
     './', // La ruta base (index.html)
     'sw.js',
