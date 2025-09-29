@@ -23,55 +23,60 @@
     </div>
 
     <script>
-        // index.html (CÓDIGO MODIFICADO)
+    // Función para actualizar la bitácora
+    function updateBitacora(estado, time) {
+        const id = estado.toLowerCase();
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.replace('pending', 'done');
+            element.innerHTML = '✅';
+        }
+        if (estado === 'instalado' && time) {
+            console.log(`[Bitácora] Instalado: ${time}`);
+        }
+    }
 
-// Función para registrar el Service Worker
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
+    // Función para manejar los mensajes del Service Worker
+    function handleSWMessages(event) {
+        const data = event.data;
+        console.log(`✅ Mensaje de SW recibido: ${data.estado}`);
+        if (data.estado === 'instalado') updateBitacora('instalado');
+        if (data.estado === 'activado') updateBitacora('activacion');
+        if (data.estado === 'activo') updateBitacora('activo');
+    }
+
+    // Función para registrar el Service Worker
+    function registerServiceWorker() {
         navigator.serviceWorker.register('./sw.js')
             .then(registration => {
                 console.log('✅ Registro del Service Worker exitoso con alcance:', registration.scope);
-                
-                // 1. MARCAR ESTADO 'INSTALANDO' (Siempre se marca si el registro es OK)
-                document.getElementById('instalando').classList.replace('pending', 'done');
-                document.getElementById('instalando').innerHTML = '✅';
-
-                // 2. COMPROBAR EL TRABAJADOR ACTIVO (Para INSTALADO y ACTIVACIÓN)
-                const worker = registration.active;
-                if (worker) {
-                    // Si existe un Service Worker activo, significa que ya pasó por INSTALADO y ACTIVACIÓN.
-                    // Marcamos estos estados inmediatamente para la bitácora.
-                    document.getElementById('instalado').classList.replace('pending', 'done');
-                    document.getElementById('instalado').innerHTML = '✅';
-                    document.getElementById('activacion').classList.replace('pending', 'done');
-                    document.getElementById('activacion').innerHTML = '✅';
-                }
-                
-                // 3. ESCUCHA DE MENSAJES (Necesario para el estado 'ACTIVO')
-                // Este listener aún se necesita para capturar el evento 'activo' (fetch).
-                navigator.serviceWorker.addEventListener('message', event => {
-                    const estado = event.data.estado;
-                    // Solo necesitamos manejar el estado 'activo' aquí.
-                    if (estado === 'activo') {
-                        document.getElementById('activo').classList.replace('pending', 'done');
-                        document.getElementById('activo').innerHTML = '✅';
-                    }
-                    // Mantenemos la lógica por si ocurre una actualización de versión.
-                    if (estado === 'instalado') {
-                        document.getElementById('instalado').classList.replace('pending', 'done');
-                        document.getElementById('instalado').innerHTML = '✅';
-                    }
-                    if (estado === 'activado') {
-                        document.getElementById('activacion').classList.replace('pending', 'done');
-                        document.getElementById('activacion').innerHTML = '✅';
-                    }
-                });
+                updateBitacora('instalando');
+                checkActiveWorker(registration);
             })
             .catch(error => {
                 console.log('❌ Registro del Service Worker fallido:', error);
             });
-    });
-}
+    }
+
+    // Función para comprobar si hay un trabajador activo
+    function checkActiveWorker(registration) {
+        const worker = registration.active;
+        if (worker) {
+            updateBitacora('instalado');
+            updateBitacora('activacion');
+        }
+    }
+
+    // Función principal para inicializar la aplicación
+    function init() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', handleSWMessages);
+            window.addEventListener('load', registerServiceWorker);
+        }
+    }
+
+    // Inicializar la aplicación
+    init();
     </script>
 </body>
 </html>
